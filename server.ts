@@ -3,6 +3,7 @@ config(); // Load .env BEFORE anything else
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import fs from "fs";
 import cors from "cors";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
@@ -136,7 +137,6 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const fs = require('fs');
     const distPath = path.join(process.cwd(), "dist");
     
     // Helper to serve index.html with injected environment variables
