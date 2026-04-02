@@ -189,8 +189,8 @@ export function useAuth() {
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
-  const isConfigured = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const env = (window as any)?.__ENV__ || import.meta.env;
+  const isConfigured = !!env.VITE_SUPABASE_URL && !!env.VITE_SUPABASE_ANON_KEY;
 
   if (!isConfigured) {
     return <ConfigScreen />;

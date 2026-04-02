@@ -8,8 +8,9 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 async function startServer() {
   const app = express();
-  const PORT = 8080;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 
+  // ... (rest of the setup logic stays the same)
   app.use(cors());
   app.use(express.json());
 
@@ -135,15 +136,36 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    const fs = require('fs');
     const distPath = path.join(process.cwd(), "dist");
+    
+    // Helper to serve index.html with injected environment variables
+    const serveIndexWithEnv = (res: any) => {
+      try {
+        let html = fs.readFileSync(path.join(distPath, "index.html"), 'utf8');
+        const envScript = `<script>window.__ENV__ = ${JSON.stringify({
+          VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+          VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
+        })}</script>`;
+        html = html.replace('</head>', `${envScript}\n</head>`);
+        res.send(html);
+      } catch (err) {
+        console.error("Error serving index.html:", err);
+        res.status(500).send("Internal Server Error");
+      }
+    };
+
+    // Serve injected index.html for root
+    app.get("/", (_req, res) => serveIndexWithEnv(res));
+    app.get("/index.html", (_req, res) => serveIndexWithEnv(res));
+
     app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    app.get("*", (_req, res) => serveIndexWithEnv(res));
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    const appUrl = process.env.APP_URL || `http://localhost:${PORT}`;
+    console.log(`Server running on ${appUrl}`);
   });
 }
 
