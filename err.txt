@@ -1,0 +1,1 @@
+null value in column "type" of relation "transactions" violates not-null constraint
